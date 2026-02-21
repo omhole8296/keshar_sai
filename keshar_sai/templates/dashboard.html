@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Keshar Sai Developers</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body {% if is_owner %}class="show-owner"{% endif %}>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo -->
+            <div class="logo">
+                <img src="{{ url_for('static', filename='uploads/keshar_sai_logo.png') }}" alt="Logo" onerror="this.src='https://via.placeholder.com/50x50/c0392b/ffffff?text=KS'">
+                <div class="logo-text">
+                    <h3>Keshar Sai Developers</h3>
+                    <span>Land Brokerage</span>
+                </div>
+            </div>
+
+            <!-- Nav Tabs -->
+            <ul class="nav-tabs">
+                <li><a href="{{ url_for('dashboard') }}" class="active">Home</a></li>
+                <li><a href="{{ url_for('about') }}">About Us</a></li>
+                <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                <li><a href="{{ url_for('liked_properties') }}">Liked Properties</a></li>
+                <li><a href="{{ url_for('users_list') }}">Users</a></li>
+            </ul>
+
+            <!-- Search Bar -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search properties..." id="searchInput">
+            </div>
+
+            <!-- Profile -->
+            <div class="profile-menu">
+                <div class="profile-icon" onclick="toggleDropdown()">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="dropdown" id="dropdown">
+                    <a href="#profile">
+                        <i class="fas fa-user"></i>
+                        Profile
+                    </a>
+                    <a href="#settings">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                    <a href="{{ url_for('logout') }}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        
+        <!-- Add Property Button (Owner Only) -->
+        <div class="owner-only" style="margin-bottom: 2rem; text-align: right;">
+            <button class="add-property-btn" onclick="window.location.href='{{ url_for('add_property') }}'">
+                <i class="fas fa-plus"></i>
+                Add New Property
+            </button>
+        </div>
+        
+        <!-- Category Tabs (No Industrial) -->
+        <div class="category-tabs">
+            <div class="category-tab active" data-category="all">All Properties</div>
+            <div class="category-tab" data-category="agricultural">Agricultural</div>
+            <div class="category-tab" data-category="residential">Residential</div>
+            <div class="category-tab" data-category="commercial">Commercial</div>
+            <div class="category-tab" data-category="farmhouse">Farm House</div>
+        </div>
+            
+
+
+        <!-- Properties Grid -->
+        <div class="properties-grid">
+            {% if properties %}
+                {% for property in properties %}
+                <div class="property-card" data-category="{{ property.category }}" onclick="viewProperty({{ property.id }})">
+                    <div class="card-image" style="background-image: url('{{ property.image1 | get_image_url }}')">
+                        {% if property.badge %}
+                        <div class="card-badge">{{ property.badge }}</div>
+                        {% endif %}
+                        <div class="card-status">{{ property.status.upper() }}</div>
+                        
+                        <!-- Like Button -->
+                        <button class="like-btn {% if property.id in liked_property_ids %}liked{% endif %}" 
+                                onclick="toggleLike(event, {{ property.id }})" 
+                                title="{% if property.id in liked_property_ids %}Unlike{% else %}Like{% endif %} property">
+                            <i class="{% if property.id in liked_property_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ property.location }}
+                        </div>
+                        <h3 class="card-title">{{ property.title }}</h3>
+                        <div class="card-specs">
+                            <div class="spec">
+                                <span class="spec-label">Area</span>
+                                <span class="spec-value">{{ property.area }}</span>
+                            </div>
+                            <div class="spec">
+                                <span class="spec-label">Facing</span>
+                                <span class="spec-value">{{ property.facing }}</span>
+                            </div>
+                            <div class="spec">
+                                <span class="spec-label">{{ property.spec1_label }}</span>
+                                <span class="spec-value">{{ property.spec1_value }}</span>
+                            </div>
+                        </div>
+                        <div class="card-price">{{ property.price }}</div>
+                        <div class="price-per">{{ property.price_per }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                    <i class="fas fa-home" style="font-size: 4rem; color: var(--medium-gray); margin-bottom: 1rem;"></i>
+                    <h2 style="font-family: 'Playfair Display', serif; color: var(--dark-text); margin-bottom: 0.5rem;">No Properties Yet</h2>
+                    <p style="color: var(--medium-gray); margin-bottom: 2rem;">Properties will appear here once they are added.</p>
+                    {% if is_owner %}
+                    <button class="btn btn-primary" onclick="window.location.href='{{ url_for('add_property') }}'">
+                        <i class="fas fa-plus"></i>
+                        Add Your First Property
+                    </button>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

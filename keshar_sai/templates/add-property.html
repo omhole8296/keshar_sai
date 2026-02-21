@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Property - Keshar Sai Developers</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-red: #c0392b;
+            --dark-red: #a93226;
+            --forest-green: #2d5016;
+            --cream: #fdf8f3;
+            --light-gray: #f5f7fa;
+            --dark-text: #1f2d3d;
+            --medium-gray: #555;
+            --border-color: #e8e8e8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: white;
+            padding: 1.2rem 5%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: var(--light-gray);
+            color: var(--dark-text);
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: var(--dark-text);
+            color: white;
+            transform: translateX(-3px);
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            color: var(--primary-red);
+            font-weight: 700;
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        .form-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-header p {
+            color: var(--medium-gray);
+            font-size: 1rem;
+        }
+
+        .form-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--dark-text);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid var(--primary-red);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-row.single {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--dark-text);
+            font-size: 0.95rem;
+        }
+
+        .required {
+            color: var(--primary-red);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.9rem 1.2rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #aaa;
+        }
+
+        /* Image Upload */
+        .image-upload-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .image-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+
+        .image-upload-box {
+            aspect-ratio: 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-upload-box:hover {
+            border-color: var(--primary-red);
+            background: rgba(192, 57, 43, 0.05);
+        }
+
+        .image-upload-box i {
+            font-size: 2rem;
+            color: var(--medium-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .image-upload-box span {
+            font-size: 0.85rem;
+            color: var(--medium-gray);
+        }
+
+        .image-upload-box input[type="file"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .image-upload-box.has-image {
+            border-style: solid;
+            border-color: var(--primary-red);
+        }
+
+        .image-upload-box.has-image .image-preview {
+            display: block;
+        }
+
+        .image-upload-box.has-image i,
+        .image-upload-box.has-image span {
+            display: none;
+        }
+
+        .helper-text {
+            font-size: 0.85rem;
+            color: var(--medium-gray);
+            margin-top: 0.5rem;
+        }
+
+        /* Buttons */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--dark-red);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(192, 57, 43, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--light-gray);
+            color: var(--dark-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--dark-text);
+            color: white;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .form-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .image-upload-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <a href="{{ url_for('dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+        </a>
+        <h1 class="page-title">Add New Property</h1>
+        <div style="width: 150px;"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2>Property Details</h2>
+                <p>Fill in the information below to add a new property</p>
+            </div>
+
+            <form id="propertyForm" method="POST" action="{{ url_for('add_property') }}" enctype="multipart/form-data">
+                
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <h3 class="section-title">Basic Information</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Property Title <span class="required">*</span></label>
+                            <input type="text" name="title" placeholder="e.g., Prime Agricultural Land" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Property Type <span class="required">*</span></label>
+                            <select name="category" required>
+                                <option value="">Select Type</option>
+                                <option value="agricultural">Agricultural</option>
+                                <option value="residential">Residential</option>
+                                <option value="commercial">Commercial</option>
+                                <option value="farmhouse">Farm House</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Location <span class="required">*</span></label>
+                            <input type="text" name="location" placeholder="e.g., Devanahalli, Bangalore" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Status <span class="required">*</span></label>
+                            <select name="status" required>
+                                <option value="available">Available</option>
+                                <option value="reserved">Reserved</option>
+                                <option value="sold">Sold</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Badge (Optional)</label>
+                            <input type="text" name="badge" placeholder="e.g., FEATURED, HOT DEAL, NEW">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Specifications -->
+                <div class="form-section">
+                    <h3 class="section-title">Specifications</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Area <span class="required">*</span></label>
+                            <input type="text" name="area" placeholder="e.g., 12 Acres or 2400 sq.ft" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Facing Direction <span class="required">*</span></label>
+                            <select name="facing" required>
+                                <option value="">Select Direction</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="North-East">North-East</option>
+                                <option value="North-West">North-West</option>
+                                <option value="South-East">South-East</option>
+                                <option value="South-West">South-West</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Additional Spec 1 <span class="required">*</span></label>
+                            <input type="text" name="spec1_label" placeholder="e.g., Water Source" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Value</label>
+                            <input type="text" name="spec1_value" placeholder="e.g., Borewell" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing -->
+                <div class="form-section">
+                    <h3 class="section-title">Pricing</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Total Price <span class="required">*</span></label>
+                            <input type="text" name="price" placeholder="e.g., ₹85 Lakhs or ₹2.5 Cr" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Price Per Unit <span class="required">*</span></label>
+                            <input type="text" name="price_per" placeholder="e.g., ₹7L per acre" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-section">
+                    <h3 class="section-title">Description</h3>
+                    
+                    <div class="form-row single">
+                        <div class="form-group">
+                            <label>Property Description <span class="required">*</span></label>
+                            <textarea name="description" placeholder="Detailed description of the property..." required></textarea>
+                            <span class="helper-text">Provide a detailed description including location benefits, features, and investment potential</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="form-section">
+                    <h3 class="section-title">Property Images</h3>
+                    <p class="helper-text" style="margin-bottom: 1rem;">Upload up to 4 images. First image will be the main display image.</p>
+                    
+                    <div class="image-upload-grid">
+                        <div class="image-upload-box" id="imageBox1">
+                            <i class="fas fa-image"></i>
+                            <span>Main Image</span>
+                            <input type="file" name="image1" accept="image/*" onchange="previewImage(this, 1)">
+                            <img class="image-preview" id="preview1" alt="Preview">
+                        </div>
+                        
+                        <div class="image-upload-box" id="imageBox2">
+                            <i class="fas fa-image"></i>
+                            <span>Image 2</span>
+                            <input type="file" name="image2" accept="image/*" onchange="previewImage(this, 2)">
+                            <img class="image-preview" id="preview2" alt="Preview">
+                        </div>
+                        
+                        <div class="image-upload-box" id="imageBox3">
+                            <i class="fas fa-image"></i>
+                            <span>Image 3</span>
+                            <input type="file" name="image3" accept="image/*" onchange="previewImage(this, 3)">
+                            <img class="image-preview" id="preview3" alt="Preview">
+                        </div>
+                        
+                        <div class="image-upload-box" id="imageBox4">
+                            <i class="fas fa-image"></i>
+                            <span>Image 4</span>
+                            <input type="file" name="image4" accept="image/*" onchange="previewImage(this, 4)">
+                            <img class="image-preview" id="preview4" alt="Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                        <i class="fas fa-times"></i>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                        Add Property
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Preview uploaded images
+        function previewImage(input, index) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const preview = document.getElementById('preview' + index);
+                    const box = document.getElementById('imageBox' + index);
+                    
+                    preview.src = e.target.result;
+                    box.classList.add('has-image');
+                };
+                
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Form validation
+        document.getElementById('propertyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Basic validation
+            const requiredFields = this.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.style.borderColor = 'red';
+                } else {
+                    field.style.borderColor = '';
+                }
+            });
+            
+            if (isValid) {
+                // Submit form via Flask
+                this.submit();
+                // Or handle with AJAX
+                /*
+                const formData = new FormData(this);
+                fetch('/add-property', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Property added successfully!');
+                        window.location.href = '/dashboard';
+                    }
+                });
+                */
+            } else {
+                alert('Please fill all required fields');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ property.title }} - Keshar Sai Developers</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+     <style>
+        :root {
+            --primary-red: #c0392b;
+            --dark-red: #a93226;
+            --forest-green: #2d5016;
+            --cream: #fdf8f3;
+            --light-gray: #f5f7fa;
+            --dark-text: #1f2d3d;
+            --medium-gray: #555;
+            --border-color: #e8e8e8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--light-gray);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: white;
+            padding: 1.2rem 5%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .return-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: var(--light-gray);
+            color: var(--dark-text);
+            padding: 0.8rem 1.8rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .return-btn:hover {
+            background: var(--dark-text);
+            color: white;
+            transform: translateX(-3px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo img {
+            height: 45px;
+            width: 45px;
+            border-radius: 8px;
+        }
+
+        .logo-text h3 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-red);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+        }
+
+        /* Owner Action Buttons - Only visible to owner */
+        .owner-actions {
+            display: none;
+            gap: 0.5rem;
+        }
+
+        .owner-only .owner-actions {
+            display: flex;
+        }
+
+        .owner-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1rem;
+        }
+
+        .owner-btn.edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .owner-btn.edit:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .owner-btn.delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .owner-btn.delete:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .book-btn {
+            background: var(--primary-red);
+            color: white;
+            padding: 0.9rem 2.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .book-btn:hover {
+            background: var(--dark-red);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(192, 57, 43, 0.3);
+        }
+
+        /* ==================== MAIN CONTENT ==================== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 5%;
+        }
+
+        /* Image Gallery */
+        .gallery {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .main-image {
+            width: 100%;
+            height: 500px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+
+        .image-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-red);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+
+        .image-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--forest-green);
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 700;
+        }
+
+        .thumbnails {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .thumbnail {
+            height: 120px;
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .thumbnail:hover,
+        .thumbnail.active {
+            border-color: var(--primary-red);
+            transform: scale(1.05);
+        }
+
+        /* Property Info */
+        .property-info {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .property-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+            font-weight: 800;
+        }
+
+        .property-location {
+            color: var(--medium-gray);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .price-section {
+            background: linear-gradient(135deg, var(--primary-red), var(--dark-red));
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .price-large {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.3rem;
+        }
+
+        .price-per {
+            font-size: 1.05rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        /* Specifications */
+        .specs-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--dark-text);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 3px solid var(--primary-red);
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .spec-box {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .spec-box:hover {
+            background: var(--primary-red);
+            color: white;
+            transform: translateY(-5px);
+        }
+
+        .spec-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-red);
+        }
+
+        .spec-box:hover .spec-icon {
+            color: white;
+        }
+
+        .spec-label {
+            font-size: 0.9rem;
+            color: var(--medium-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        .spec-box:hover .spec-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .spec-value {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--dark-text);
+        }
+
+        .spec-box:hover .spec-value {
+            color: white;
+        }
+
+        /* Description */
+        .description-section {
+            margin-bottom: 2rem;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: var(--medium-gray);
+        }
+
+        /* Features */
+        .features-section {
+            margin-bottom: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .feature-item {
+            background: var(--light-gray);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .feature-item i {
+            color: var(--primary-red);
+            font-size: 1.3rem;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .contact-box {
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--light-gray);
+            border-radius: 12px;
+        }
+
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--primary-red);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 1rem;
+        }
+
+        .contact-label {
+            font-size: 0.85rem;
+            color: var(--medium-gray);
+            margin-bottom: 0.3rem;
+        }
+
+        .contact-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--dark-text);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .action-btn {
+            padding: 1.2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-red);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--dark-red);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.secondary {
+            background: var(--dark-text);
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background: #34495e;
+            transform: translateY(-2px);
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .header {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .main-image {
+                height: 350px;
+            }
+
+            .thumbnails {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .property-title {
+                font-size: 2rem;
+            }
+
+            .price-large {
+                font-size: 2.3rem;
+            }
+
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-image {
+                height: 250px;
+            }
+
+            .property-title {
+                font-size: 1.6rem;
+            }
+
+            .thumbnails {
+                grid-template-columns: 1fr;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        /* Like/Heart Button */
+.like-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.like-btn:hover {
+    transform: scale(1.1);
+    background: white;
+}
+
+.like-btn i {
+    font-size: 1.2rem;
+    color: #999;
+    transition: all 0.3s;
+}
+
+.like-btn.liked i {
+    color: #c0392b;
+    animation: heartBeat 0.3s ease;
+}
+
+.like-btn:active {
+    transform: scale(0.95);
+}
+    </style>
+</head>
+<body>
+    <!-- Header -->
+ 
+    <div class="header owner-only">
+        <!-- <div class="header owner-only"> any one
+         <div class="header {% if is_owner %}show-owner{% endif %}"> 
+         <div class="header {% if is_owner %}owner-only{% endif %}">-->
+        <a href="{{ url_for('dashboard') }}" class="return-btn">
+            <i class="fas fa-arrow-left"></i>
+            Return
+        </a>
+
+        <div class="logo">
+            <img src="{{ url_for('static', filename='uploads/keshar_sai_logo.png') }}" alt="Logo" onerror="this.src='https://via.placeholder.com/45x45/c0392b/ffffff?text=KS'">
+            <div class="logo-text">
+                <h3>Keshar Sai Developers</h3>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Owner Actions - Only visible to owner -->
+            <div class="owner-actions">
+                <button class="owner-btn edit" onclick="editProperty()" title="Edit Property">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="owner-btn delete" onclick="deleteProperty()" title="Delete Property">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            
+            <button class="book-btn" onclick="bookProperty()">
+                <i class="fas fa-check-circle"></i>
+                Book Now
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Image Gallery -->
+        <div class="gallery">
+            <div class="main-image" id="mainImage" style="background-image: url('{{ property.image1 | get_image_url }}')">
+                {% if property.badge %}
+                <div class="image-badge">{{ property.badge }}</div>
+                {% endif %}
+                <div class="image-status">{{ property.status.upper() }}</div>
+
+
+
+
+
+                <button class="like-btn {% if property.id in liked_property_ids %}liked{% endif %}" 
+                                onclick="toggleLike(event, {{ property.id }})" 
+                                title="{% if property.id in liked_property_ids %}Unlike{% else %}Like{% endif %} property">
+                            <i class="{% if property.id in liked_property_ids %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                        </button>
+            </div>
+            <div class="thumbnails">
+                {% if property.image1 %}
+                <div class="thumbnail active" style="background-image: url('{{ property.image1 | get_image_url }}')" onclick="changeImage(this)"></div>
+                {% endif %}
+                {% if property.image2 %}
+                <div class="thumbnail" style="background-image: url('{{ property.image2 | get_image_url }}')" onclick="changeImage(this)"></div>
+                {% endif %}
+                {% if property.image3 %}
+                <div class="thumbnail" style="background-image: url('{{ property.image3 | get_image_url }}')" onclick="changeImage(this)"></div>
+                {% endif %}
+                {% if property.image4 %}
+                <div class="thumbnail" style="background-image: url('{{ property.image4 | get_image_url }}')" onclick="changeImage(this)"></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Property Information -->
+        <div class="property-info">
+            <h1 class="property-title">{{ property.title }}</h1>
+            <div class="property-location">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ property.location }}
+            </div>
+
+            <!-- Price -->
+            <div class="price-section">
+                <div class="price-large">{{ property.price }}</div>
+                <div class="price-per">{{ property.price_per }}</div>
+            </div>
+
+            <!-- Specifications -->
+            <div class="specs-section">
+                <h2 class="section-title">Specifications</h2>
+                <div class="specs-grid">
+                    <div class="spec-box">
+                        <div class="spec-icon">
+                            <i class="fas fa-ruler-combined"></i>
+                        </div>
+                        <div class="spec-label">Total Area</div>
+                        <div class="spec-value">{{ property.area }}</div>
+                    </div>
+
+                    <div class="spec-box">
+                        <div class="spec-icon">
+                            <i class="fas fa-compass"></i>
+                        </div>
+                        <div class="spec-label">Facing</div>
+                        <div class="spec-value">{{ property.facing }}</div>
+                    </div>
+
+                    <div class="spec-box">
+                        <div class="spec-icon">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="spec-label">{{ property.spec1_label }}</div>
+                        <div class="spec-value">{{ property.spec1_value }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="description-section">
+                <h2 class="section-title">About This Property</h2>
+                <p class="description">{{ property.description }}</p>
+            </div>
+
+            <!-- Features -->
+            <div class="features-section">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Clear & Verified Title Deeds</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Excellent {{ property.spec1_label }}</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ property.facing }} Facing</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Prime Location</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Ready for Development</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Investment Grade Property</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>High Appreciation Potential</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Clear Road Access</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="contact-section">
+            <h2 class="section-title">Contact Information</h2>
+            <div class="contact-grid">
+                <div class="contact-box">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="contact-label">Phone</div>
+                    <div class="contact-value">+91 98765 43210</div>
+                </div>
+
+                <div class="contact-box">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="contact-label">Email</div>
+                    <div class="contact-value">info@kesharsai.com</div>
+                </div>
+
+                <div class="contact-box">
+                    <div class="contact-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="contact-label">Office</div>
+                    <div class="contact-value">Maharashtra, India</div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="action-btn primary" onclick="callNow()">
+                    <i class="fas fa-phone"></i>
+                    Call Now
+                </button>
+                <button class="action-btn secondary" onclick="whatsappChat()">
+                    <i class="fab fa-whatsapp"></i>
+                    WhatsApp
+                </button>
+                <button class="action-btn primary" onclick="scheduleVisit()">
+                    <i class="fas fa-calendar"></i>
+                    Schedule Visit
+                </button>
+                <button class="action-btn secondary" onclick="shareProperty()">
+                    <i class="fas fa-share-alt"></i>
+                    Share
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
