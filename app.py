@@ -75,6 +75,9 @@ class LikedProperty(db.Model):
     user = db.relationship('User', backref='liked_properties')
     property = db.relationship('Property', backref='liked_by')
 
+
+with app.app_context():
+    db.create_all()
 # ==================== LOGIN MANAGER ====================
 
 @login_manager.user_loader
