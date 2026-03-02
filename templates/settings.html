@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Keshar Sai Developers</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .settings-container { max-width: 900px; margin: 2rem auto; padding: 0 2rem; }
+        .settings-header { text-align: center; margin-bottom: 3rem; }
+        .settings-header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; color: var(--dark-text); margin-bottom: 0.5rem; }
+        .settings-card { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08); padding: 3rem; margin-bottom: 2rem; }
+        .info-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; padding: 1.5rem 0; border-bottom: 1px solid var(--light-gray); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { font-weight: 600; color: var(--dark-text); margin-bottom: 0.5rem; }
+        .info-value { color: var(--medium-gray); font-size: 1.1rem; }
+        .status-badge { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.8rem; font-weight: 600; margin-left: 0.5rem; }
+        .badge-verified { background: #d4edda; color: #155724; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="logo">
+                <img src="{{ url_for('static', filename='uploads/keshar_sai_logo.png') }}" alt="Logo">
+                <div class="logo-text">
+                    <h3>Keshar Sai Developers</h3>
+                    <span>Land Brokerage</span>
+                </div>
+            </div>
+            <ul class="nav-tabs">
+                <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+                <li><a href="{{ url_for('about') }}">About Us</a></li>
+                <li><a href="{{ url_for('contact') }}">Contact</a></li>
+                <li><a href="{{ url_for('liked_properties') }}">Liked Properties</a></li>
+                <li><a href="{{ url_for('users_list') }}">Users</a></li>
+            </ul>
+            <div class="profile-menu">
+                <div class="profile-icon" onclick="toggleDropdown()">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="dropdown" id="dropdown">
+                    <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+                    <a href="{{ url_for('settings') }}" class="active"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="settings-container">
+        <div class="settings-header">
+            <h1><i class="fas fa-cog"></i> Account Settings</h1>
+            <p style="color: var(--medium-gray); font-size: 1.1rem;">View your account information</p>
+        </div>
+
+        <div class="settings-card">
+            <h3 style="font-size: 1.5rem; color: var(--dark-text); margin-bottom: 2rem; border-bottom: 2px solid var(--light-gray); padding-bottom: 0.5rem;">
+                <i class="fas fa-info-circle"></i> Account Information
+            </h3>
+            
+            <div class="info-row">
+                <div>
+                    <p class="info-label">Full Name</p>
+                    <p class="info-value">{{ user.name }}</p>
+                </div>
+                <div>
+                    <p class="info-label">Email Address</p>
+                    <p class="info-value">
+                        {{ user.email }}
+                        {% if user.email_verified %}
+                            <span class="status-badge badge-verified">✓ Verified</span>
+                        {% else %}
+                            <span class="status-badge badge-pending">Pending</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <div>
+                    <p class="info-label">Mobile Number</p>
+                    <p class="info-value">
+                        {{ user.mobile }}
+                        {% if user.mobile_verified %}
+                            <span class="status-badge badge-verified">✓ Verified</span>
+                        {% else %}
+                            <span class="status-badge badge-pending">Pending</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="info-label">Member Since</p>
+                    <p class="info-value">{{ user.created_at.strftime('%B %d, %Y') }}</p>
+                </div>
+            </div>
+
+            {% if not user.email_verified or not user.mobile_verified %}
+            <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 8px; text-align: center;">
+                <i class="fas fa-exclamation-triangle" style="color: #856404;"></i>
+                <span style="color: #856404; font-weight: 600;">Your account is not fully verified.</span>
+                <a href="{{ url_for('verify') }}" style="display: inline-block; margin-left: 1rem; color: var(--primary-red); font-weight: 600; text-decoration: none;">
+                    Verify Now →
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="settings-card">
+            <h3 style="font-size: 1.5rem; color: var(--dark-text); margin-bottom: 2rem; border-bottom: 2px solid var(--light-gray); padding-bottom: 0.5rem;">
+                <i class="fas fa-shield-alt"></i> Security Information
+            </h3>
+            
+            <div class="info-row">
+                <div>
+                    <p class="info-label">Password</p>
+                    <p class="info-value">••••••••</p>
+                    <small style="color: var(--medium-gray); display: block; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Your password was sent to your email during signup
+                    </small>
+                </div>
+                <div>
+                    <p class="info-label">Account Status</p>
+                    <p class="info-value">
+                        <span class="status-badge badge-verified">Active</span>
+                    </p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="{{ url_for('profile') }}" class="btn btn-primary">
+                    <i class="fas fa-user-edit"></i> Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

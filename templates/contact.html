@@ -198,11 +198,11 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="dropdown" id="dropdown">
-                    <a href="#profile">
+                    <a href="{{ url_for('profile') }}">
                         <i class="fas fa-user"></i>
                         Profile
                     </a>
-                    <a href="#settings">
+                    <a href="{{ url_for('settings') }}">
                         <i class="fas fa-cog"></i>
                         Settings
                     </a>
@@ -231,8 +231,8 @@
                 </div>
                 <div class="contact-details">
                     <h3>Phone</h3>
-                    <p><a href="tel:+919876543210">+91 73872 66237</a></p>
-                    <p><a href="tel:+919876543211">+91 87885 94214</a></p>
+                    <p><a href="tel:+9173872 66237">+91 73872 66237</a></p>
+                    <p><a href="tel:+9187885 94214">+91 87885 94214</a></p>
                 </div>
             </div>
 
@@ -264,8 +264,8 @@
                 </div>
                 <div class="contact-details">
                     <h3>Working Hours</h3>
-                    <p>Monday - Saturday: 10:00 AM - 6:00 PM</p>
-                    <p>Sunday: 10:00 AM - 5:00 PM</p>
+                    <p>Monday - Sunday: 10:00 AM - 6:00 PM</p>
+                    <p>Tuesday: Holiday</p>
                 </div>
             </div>
         </div>

@@ -6,6 +6,8 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 import os
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
@@ -316,6 +318,42 @@ def contact():
     """Contact page"""
     return render_template('contact.html',year=datetime.now().year)
 
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        try:
+            current_user.name = request.form.get('name')
+            current_user.mobile = request.form.get('mobile')
+            
+            # Handle profile image upload
+            if 'profile_image' in request.files:
+                file = request.files['profile_image']
+                if file and file.filename:
+                    # Delete old profile image if exists
+                    if current_user.profile_image:
+                        old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], current_user.profile_image)
+                        if os.path.exists(old_image_path):
+                            os.remove(old_image_path)
+                    
+                    filename = save_image(file)
+                    if filename:
+                        current_user.profile_image = filename
+            
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+            return redirect(url_for('profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating profile: {str(e)}', 'error')
+    
+    return render_template('profile.html', user=current_user)
+
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    return render_template('settings.html', user=current_user)
+
 @app.route('/liked-properties')
 @login_required
 def liked_properties():
@@ -381,6 +419,69 @@ def unlike_property(property_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'message': str(e)}), 500
+    
+    
+
+@app.route('/verify', methods=['GET','POST'])
+@login_required
+def verify():
+    if request.method == 'POST':
+        if request.form.get('email_code') == current_user.email_verification_code:
+            current_user.email_verified = True
+        if request.form.get('mobile_code') == current_user.mobile_verification_code:
+            current_user.mobile_verified = True
+        db.session.commit()
+        if current_user.email_verified and current_user.mobile_verified:
+            flash('Verified!', 'success')
+            return redirect(url_for('dashboard'))
+        flash('Invalid code', 'error')
+    return render_template('verify.html')
+
+@app.route('/verify-signup', methods=['GET', 'POST'])
+def verify_signup():
+    if 'pending_user' not in session:
+        flash('No pending registration', 'error')
+        return redirect(url_for('signup'))
+    
+    if request.method == 'POST':
+        if (request.form.get('email_code') == session.get('email_code') and 
+            request.form.get('mobile_code') == session.get('mobile_code')):
+            
+            pending = session['pending_user']
+            user = User(
+                name=pending['name'], email=pending['email'], mobile=pending['mobile'],
+                password=generate_password_hash(pending['password']),
+                email_verified=True, mobile_verified=True
+            )
+            db.session.add(user)
+            db.session.commit()
+            
+            session.pop('pending_user', None)
+            session.pop('email_code', None)
+            session.pop('mobile_code', None)
+            
+            login_user(user)
+            flash('Account created! Welcome.', 'success')
+            return redirect(url_for('dashboard'))
+        flash('Invalid codes', 'error')
+    
+    return render_template('verify-signup.html', 
+                         email=session['pending_user']['email'],
+                         mobile=session['pending_user']['mobile'])
+
+@app.route('/resend-verification', methods=['POST'])
+@login_required
+def resend_verification():
+    vtype = request.json.get('type')
+    if vtype == 'email':
+        current_user.email_verification_code = generate_code()
+        print(f"New email code: {current_user.email_verification_code}")
+    elif vtype == 'mobile':
+        current_user.mobile_verification_code = generate_code()
+        print(f"New SMS code: {current_user.mobile_verification_code}")
+    db.session.commit()
+    return jsonify({'success': True})
+
 
 # ==================== TEMPLATE FILTERS ====================
 
