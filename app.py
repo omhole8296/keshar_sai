@@ -3,26 +3,21 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from functools import wraps
 import os
 from datetime import datetime
-import smtplib
-from email.mime.text import MIMEText
+import random
+import string
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
+app.config['SECRET_KEY'] = 'your-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///keshar_sai.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
-# Initialize extensions
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
-login_manager.login_message = 'Please log in to access this page.'
-
-# Ensure upload folder exists
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ==================== DATABASE MODELS ====================
@@ -31,56 +26,45 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    mobile = db.Column(db.String(15), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+    profile_image = db.Column(db.String(200))
+    email_verified = db.Column(db.Boolean, default=False)
+    mobile_verified = db.Column(db.Boolean, default=False)
+    email_verification_code = db.Column(db.String(6))
+    mobile_verification_code = db.Column(db.String(6))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    def is_owner(self):
-        """Check if user is the owner (xyz@gmail.com)"""
-        return self.email == 'xyz@gmail.com'
 
 class Property(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
-    category = db.Column(db.String(50), nullable=False)  # agricultural, residential, commercial, farmhouse
+    category = db.Column(db.String(50), nullable=False)
     location = db.Column(db.String(200), nullable=False)
-    status = db.Column(db.String(50), default='available')  # available, reserved, sold
-    badge = db.Column(db.String(50))  # FEATURED, HOT DEAL, NEW, etc.
-    
-    # Specifications
+    status = db.Column(db.String(50), default='available')
+    badge = db.Column(db.String(50))
     area = db.Column(db.String(100), nullable=False)
     facing = db.Column(db.String(50), nullable=False)
-    spec1_label = db.Column(db.String(100))  # e.g., Water Source
-    spec1_value = db.Column(db.String(100))  # e.g., Borewell
-    
-    # Pricing
     price = db.Column(db.String(100), nullable=False)
     price_per = db.Column(db.String(100), nullable=False)
-    
-    # Description
     description = db.Column(db.Text, nullable=False)
-    
-    # Images (store filenames)
     image1 = db.Column(db.String(200))
     image2 = db.Column(db.String(200))
     image3 = db.Column(db.String(200))
     image4 = db.Column(db.String(200))
-    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    features = db.relationship('PropertyFeature', backref='property', lazy=True, cascade='all, delete-orphan')
+
+class PropertyFeature(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
+    feature_text = db.Column(db.String(200), nullable=False)
 
 class LikedProperty(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     property_id = db.Column(db.Integer, db.ForeignKey('property.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    user = db.relationship('User', backref='liked_properties')
-    property = db.relationship('Property', backref='liked_by')
-
-
-with app.app_context():
-    db.create_all()
-# ==================== LOGIN MANAGER ====================
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -88,354 +72,94 @@ def load_user(user_id):
 
 # ==================== HELPER FUNCTIONS ====================
 
+def generate_code():
+    return ''.join(random.choices(string.digits, k=6))
+
 def allowed_file(filename):
-    """Check if file extension is allowed"""
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png','jpg','jpeg','gif','webp'}
 
 def save_image(file):
-    """Save uploaded image and return filename"""
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        # Add timestamp to avoid conflicts
         filename = f"{datetime.utcnow().timestamp()}_{filename}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return filename
     return None
+
+def send_email(to_email, subject, message):
+    print(f"\n{'='*60}")
+    print(f"📧 EMAIL SENT")
+    print(f"To: {to_email}")
+    print(f"Subject: {subject}")
+    print(f"Message:\n{message}")
+    print(f"{'='*60}\n")
+    return True
 
 # ==================== ROUTES ====================
 
 @app.route('/')
 def index():
-    """Home page"""
-    return render_template('index.html',year=datetime.now().year)
+    return render_template('index.html', year=datetime.now().year)
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
-    """Login page"""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
-    
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
-        
         user = User.query.filter_by(email=email).first()
         
         if user and check_password_hash(user.password, password):
             login_user(user)
-            flash('Logged in successfully!', 'success')
-            next_page = request.args.get('next')
-            return redirect(next_page if next_page else url_for('dashboard'))
+            flash('Login successful!', 'success')
+            return redirect(url_for('dashboard'))
         else:
             flash('Invalid email or password', 'error')
     
     return render_template('login.html')
 
-@app.route('/signup', methods=['GET', 'POST'])
+@app.route('/signup', methods=['GET','POST'])
 def signup():
-    """Signup page"""
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
+        mobile = request.form.get('mobile')
         password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
         
-        # Validation
-        if not all([name, email, password, confirm_password]):
-            flash('All fields are required', 'error')
-        elif password != confirm_password:
-            flash('Passwords do not match', 'error')
+        if not all([name, email, mobile, password]):
+            flash('All fields required', 'error')
+        elif len(mobile) != 10 or not mobile.isdigit():
+            flash('Mobile must be 10 digits', 'error')
+        elif len(password) < 6:
+            flash('Password must be at least 6 characters', 'error')
         elif User.query.filter_by(email=email).first():
             flash('Email already registered', 'error')
+        elif User.query.filter_by(mobile=mobile).first():
+            flash('Mobile already registered', 'error')
         else:
-            # Create new user
-            hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
-            new_user = User(name=name, email=email, password=hashed_password)
-            db.session.add(new_user)
-            db.session.commit()
+            session['pending_user'] = {
+                'name': name, 'email': email, 'mobile': mobile, 'password': password
+            }
             
-            flash('Account created successfully! Please log in.', 'success')
-            return redirect(url_for('login'))
+            email_code = generate_code()
+            mobile_code = generate_code()
+            session['email_code'] = email_code
+            session['mobile_code'] = mobile_code
+            
+            print(f"\n{'='*60}")
+            print(f"📧 Email Code for {email}: {email_code}")
+            print(f"📱 SMS Code for {mobile}: {mobile_code}")
+            print(f"{'='*60}\n")
+            
+            send_email(email, "Verify Your Email", f"Your code: {email_code}")
+            flash('Verification codes sent!', 'success')
+            return redirect(url_for('verify_signup'))
     
     return render_template('signup.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    """Logout user"""
-    logout_user()
-    flash('Logged out successfully', 'success')
-    return redirect(url_for('index'))
-
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    """Dashboard - show all properties"""
-    # Exclude industrial category
-    properties = Property.query.filter(Property.category != 'industrial').order_by(Property.created_at.desc()).all()
-    # All authenticated users can add/edit/delete
-    is_owner = True
-    
-    # Get list of property IDs that current user has liked
-    liked_property_ids = [like.property_id for like in LikedProperty.query.filter_by(user_id=current_user.id).all()]
-    
-    return render_template('dashboard.html', properties=properties, is_owner=is_owner, liked_property_ids=liked_property_ids)
-
-@app.route('/property/<int:id>')
-@login_required
-def property_detail(id):
-    """Property detail page"""
-    property = Property.query.get_or_404(id)
-    # All authenticated users can edit/delete
-    is_owner = True
-    return render_template('property-view.html', property=property, is_owner=is_owner)
-
-@app.route('/add-property', methods=['GET', 'POST'])
-@login_required
-def add_property():
-    """Add new property (any authenticated user)"""
-    if request.method == 'POST':
-        try:
-            # Create new property
-            property = Property(
-                title=request.form.get('title'),
-                category=request.form.get('category'),
-                location=request.form.get('location'),
-                status=request.form.get('status', 'available'),
-                badge=request.form.get('badge'),
-                area=request.form.get('area'),
-                facing=request.form.get('facing'),
-                spec1_label=request.form.get('spec1_label'),
-                spec1_value=request.form.get('spec1_value'),
-                price=request.form.get('price'),
-                price_per=request.form.get('price_per'),
-                description=request.form.get('description')
-            )
-            
-            # Handle image uploads
-            for i in range(1, 5):
-                file = request.files.get(f'image{i}')
-                if file and file.filename:
-                    filename = save_image(file)
-                    if filename:
-                        setattr(property, f'image{i}', filename)
-            
-            db.session.add(property)
-            db.session.commit()
-            
-            flash('Property added successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error adding property: {str(e)}', 'error')
-    
-    return render_template('add-property.html')
-
-@app.route('/edit-property/<int:id>', methods=['GET', 'POST'])
-@login_required
-def edit_property(id):
-    """Edit property (any authenticated user)"""
-    property = Property.query.get_or_404(id)
-    
-    if request.method == 'POST':
-        try:
-            # Update property fields
-            property.title = request.form.get('title')
-            property.category = request.form.get('category')
-            property.location = request.form.get('location')
-            property.status = request.form.get('status')
-            property.badge = request.form.get('badge')
-            property.area = request.form.get('area')
-            property.facing = request.form.get('facing')
-            property.spec1_label = request.form.get('spec1_label')
-            property.spec1_value = request.form.get('spec1_value')
-            property.price = request.form.get('price')
-            property.price_per = request.form.get('price_per')
-            property.description = request.form.get('description')
-            
-            # Handle image updates
-            for i in range(1, 5):
-                # Check if image should be deleted
-                if request.form.get(f'delete_image{i}'):
-                    setattr(property, f'image{i}', None)
-                else:
-                    # Check for new image upload
-                    file = request.files.get(f'image{i}')
-                    if file and file.filename:
-                        filename = save_image(file)
-                        if filename:
-                            setattr(property, f'image{i}', filename)
-            
-            property.updated_at = datetime.utcnow()
-            db.session.commit()
-            
-            flash('Property updated successfully!', 'success')
-            return redirect(url_for('property_detail', id=id))
-        
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating property: {str(e)}', 'error')
-    
-    return render_template('edit-property.html', property=property)
-
-@app.route('/delete-property/<int:id>', methods=['DELETE'])
-@login_required
-def delete_property(id):
-    """Delete property (any authenticated user)"""
-    try:
-        property = Property.query.get_or_404(id)
-        
-        # Delete associated images from filesystem
-        for i in range(1, 5):
-            image_filename = getattr(property, f'image{i}')
-            if image_filename:
-                image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-        
-        db.session.delete(property)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Property deleted successfully'})
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/about')
-def about():
-    """About Us page"""
-    return render_template('about.html',year=datetime.now().year)
-
-@app.route('/contact')
-def contact():
-    """Contact page"""
-    return render_template('contact.html',year=datetime.now().year)
-
-@app.route('/profile', methods=['GET', 'POST'])
-@login_required
-def profile():
-    if request.method == 'POST':
-        try:
-            current_user.name = request.form.get('name')
-            current_user.mobile = request.form.get('mobile')
-            
-            # Handle profile image upload
-            if 'profile_image' in request.files:
-                file = request.files['profile_image']
-                if file and file.filename:
-                    # Delete old profile image if exists
-                    if current_user.profile_image:
-                        old_image_path = os.path.join(app.config['UPLOAD_FOLDER'], current_user.profile_image)
-                        if os.path.exists(old_image_path):
-                            os.remove(old_image_path)
-                    
-                    filename = save_image(file)
-                    if filename:
-                        current_user.profile_image = filename
-            
-            db.session.commit()
-            flash('Profile updated successfully!', 'success')
-            return redirect(url_for('profile'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error updating profile: {str(e)}', 'error')
-    
-    return render_template('profile.html', user=current_user)
-
-@app.route('/settings', methods=['GET', 'POST'])
-@login_required
-def settings():
-    return render_template('settings.html', user=current_user)
-
-@app.route('/liked-properties')
-@login_required
-def liked_properties():
-    """Show user's liked properties"""
-    liked = LikedProperty.query.filter_by(user_id=current_user.id).all()
-    properties = [like.property for like in liked]
-    
-    # All properties on this page are liked
-    liked_property_ids = [prop.id for prop in properties]
-    
-    return render_template('liked-properties.html', properties=properties, liked_property_ids=liked_property_ids)
-
-@app.route('/users')
-@login_required
-def users_list():
-    """Show all users"""
-    all_users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('users.html', users=all_users)
-
-@app.route('/like-property/<int:property_id>', methods=['POST'])
-@login_required
-def like_property(property_id):
-    """Like a property"""
-    try:
-        # Check if already liked
-        existing = LikedProperty.query.filter_by(
-            user_id=current_user.id, 
-            property_id=property_id
-        ).first()
-        
-        if existing:
-            return jsonify({'success': False, 'message': 'Already liked'})
-        
-        # Add like
-        like = LikedProperty(user_id=current_user.id, property_id=property_id)
-        db.session.add(like)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Property liked'})
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-
-@app.route('/unlike-property/<int:property_id>', methods=['POST'])
-@login_required
-def unlike_property(property_id):
-    """Unlike a property"""
-    try:
-        like = LikedProperty.query.filter_by(
-            user_id=current_user.id, 
-            property_id=property_id
-        ).first()
-        
-        if not like:
-            return jsonify({'success': False, 'message': 'Not liked'})
-        
-        db.session.delete(like)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Property unliked'})
-    
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'success': False, 'message': str(e)}), 500
-    
-    
-
-@app.route('/verify', methods=['GET','POST'])
-@login_required
-def verify():
-    if request.method == 'POST':
-        if request.form.get('email_code') == current_user.email_verification_code:
-            current_user.email_verified = True
-        if request.form.get('mobile_code') == current_user.mobile_verification_code:
-            current_user.mobile_verified = True
-        db.session.commit()
-        if current_user.email_verified and current_user.mobile_verified:
-            flash('Verified!', 'success')
-            return redirect(url_for('dashboard'))
-        flash('Invalid code', 'error')
-    return render_template('verify.html')
 
 @app.route('/verify-signup', methods=['GET', 'POST'])
 def verify_signup():
@@ -469,69 +193,250 @@ def verify_signup():
                          email=session['pending_user']['email'],
                          mobile=session['pending_user']['mobile'])
 
-@app.route('/resend-verification', methods=['POST'])
+@app.route('/verify', methods=['GET','POST'])
 @login_required
-def resend_verification():
-    vtype = request.json.get('type')
-    if vtype == 'email':
-        current_user.email_verification_code = generate_code()
-        print(f"New email code: {current_user.email_verification_code}")
-    elif vtype == 'mobile':
-        current_user.mobile_verification_code = generate_code()
-        print(f"New SMS code: {current_user.mobile_verification_code}")
-    db.session.commit()
-    return jsonify({'success': True})
+def verify():
+    if request.method == 'POST':
+        if request.form.get('email_code') == current_user.email_verification_code:
+            current_user.email_verified = True
+        if request.form.get('mobile_code') == current_user.mobile_verification_code:
+            current_user.mobile_verified = True
+        db.session.commit()
+        
+        if current_user.email_verified and current_user.mobile_verified:
+            flash('Verified!', 'success')
+            return redirect(url_for('dashboard'))
+        flash('Invalid code', 'error')
+    
+    return render_template('verify.html')
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Logged out', 'success')
+    return redirect(url_for('index'))
 
-# ==================== TEMPLATE FILTERS ====================
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    properties = Property.query.filter(Property.category != 'industrial').order_by(Property.created_at.desc()).all()
+    liked_ids = [l.property_id for l in LikedProperty.query.filter_by(user_id=current_user.id).all()]
+    return render_template('dashboard.html', properties=properties, is_owner=True, liked_property_ids=liked_ids)
+
+@app.route('/property/<int:id>')
+@login_required
+def property_detail(id):
+    return render_template('property-view.html', property=Property.query.get_or_404(id), is_owner=True)
+
+@app.route('/add-property', methods=['GET','POST'])
+@login_required
+def add_property():
+    if request.method == 'POST':
+        try:
+            p = Property(
+                title=request.form.get('title'), category=request.form.get('category'),
+                location=request.form.get('location'), status=request.form.get('status','available'),
+                badge=request.form.get('badge'), area=request.form.get('area'),
+                facing=request.form.get('facing'), price=request.form.get('price'),
+                price_per=request.form.get('price_per'), description=request.form.get('description')
+            )
+            
+            for i in range(1,5):
+                f = request.files.get(f'image{i}')
+                if f and f.filename:
+                    fn = save_image(f)
+                    if fn: setattr(p, f'image{i}', fn)
+            
+            db.session.add(p)
+            db.session.flush()
+            
+            for ft in request.form.getlist('features[]'):
+                if ft.strip():
+                    db.session.add(PropertyFeature(property_id=p.id, feature_text=ft.strip()))
+            
+            db.session.commit()
+            flash('Property added!', 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(str(e), 'error')
+    
+    return render_template('add-property.html')
+
+@app.route('/edit-property/<int:id>', methods=['GET','POST'])
+@login_required
+def edit_property(id):
+    p = Property.query.get_or_404(id)
+    
+    if request.method == 'POST':
+        try:
+            p.title = request.form.get('title')
+            p.category = request.form.get('category')
+            p.location = request.form.get('location')
+            p.status = request.form.get('status')
+            p.badge = request.form.get('badge')
+            p.area = request.form.get('area')
+            p.facing = request.form.get('facing')
+            p.price = request.form.get('price')
+            p.price_per = request.form.get('price_per')
+            p.description = request.form.get('description')
+            
+            for i in range(1,5):
+                if request.form.get(f'delete_image{i}'):
+                    setattr(p, f'image{i}', None)
+                else:
+                    f = request.files.get(f'image{i}')
+                    if f and f.filename:
+                        fn = save_image(f)
+                        if fn: setattr(p, f'image{i}', fn)
+            
+            PropertyFeature.query.filter_by(property_id=p.id).delete()
+            for ft in request.form.getlist('features[]'):
+                if ft.strip():
+                    db.session.add(PropertyFeature(property_id=p.id, feature_text=ft.strip()))
+            
+            p.updated_at = datetime.utcnow()
+            db.session.commit()
+            flash('Updated!', 'success')
+            return redirect(url_for('property_detail', id=id))
+        except Exception as e:
+            db.session.rollback()
+            flash(str(e), 'error')
+    
+    return render_template('edit-property.html', property=p)
+
+@app.route('/delete-property/<int:id>', methods=['DELETE'])
+@login_required
+def delete_property(id):
+    try:
+        p = Property.query.get_or_404(id)
+        for i in range(1,5):
+            img = getattr(p, f'image{i}')
+            if img and os.path.exists(os.path.join(app.config['UPLOAD_FOLDER'], img)):
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], img))
+        db.session.delete(p)
+        db.session.commit()
+        return jsonify({'success': True})
+    except:
+        return jsonify({'success': False}), 500
+
+@app.route('/about')
+def about():
+    return render_template('about.html', year=datetime.now().year)
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html', year=datetime.now().year)
+
+@app.route('/contact-submit', methods=['POST'])
+def contact_submit():
+    try:
+        name = request.form.get('name')
+        email = request.form.get('email')
+        phone = request.form.get('phone')
+        message = request.form.get('message')
+        
+        send_email("info@kesharsai.com", f"Contact: {name}", 
+            f"From: {name}\nEmail: {email}\nPhone: {phone}\n\n{message}")
+        send_email(email, "Thanks for contacting us", f"Dear {name},\n\nWe received your message.")
+        
+        flash('Message sent!', 'success')
+        return redirect(url_for('contact'))
+    except Exception as e:
+        flash(str(e), 'error')
+        return redirect(url_for('contact'))
+
+@app.route('/liked-properties')
+@login_required
+def liked_properties():
+    liked = LikedProperty.query.filter_by(user_id=current_user.id).all()
+    props = [l.property for l in liked]
+    return render_template('liked-properties.html', properties=props, liked_property_ids=[p.id for p in props])
+
+@app.route('/users')
+@login_required
+def users_list():
+    return render_template('users.html', users=User.query.order_by(User.created_at.desc()).all())
+
+@app.route('/like-property/<int:property_id>', methods=['POST'])
+@login_required
+def like_property(property_id):
+    try:
+        if LikedProperty.query.filter_by(user_id=current_user.id, property_id=property_id).first():
+            return jsonify({'success': False})
+        db.session.add(LikedProperty(user_id=current_user.id, property_id=property_id))
+        db.session.commit()
+        return jsonify({'success': True})
+    except:
+        return jsonify({'success': False}), 500
+
+@app.route('/unlike-property/<int:property_id>', methods=['POST'])
+@login_required
+def unlike_property(property_id):
+    try:
+        like = LikedProperty.query.filter_by(user_id=current_user.id, property_id=property_id).first()
+        if like:
+            db.session.delete(like)
+            db.session.commit()
+            return jsonify({'success': True})
+        return jsonify({'success': False})
+    except:
+        return jsonify({'success': False}), 500
+
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        try:
+            current_user.name = request.form.get('name')
+            current_user.mobile = request.form.get('mobile')
+            
+            if 'profile_image' in request.files:
+                file = request.files['profile_image']
+                if file and file.filename:
+                    if current_user.profile_image:
+                        old = os.path.join(app.config['UPLOAD_FOLDER'], current_user.profile_image)
+                        if os.path.exists(old): os.remove(old)
+                    
+                    fn = save_image(file)
+                    if fn: current_user.profile_image = fn
+            
+            db.session.commit()
+            flash('Profile updated!', 'success')
+            return redirect(url_for('profile'))
+        except Exception as e:
+            db.session.rollback()
+            flash(str(e), 'error')
+    
+    return render_template('profile.html', user=current_user)
+
+@app.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html', user=current_user)
 
 @app.template_filter('get_image_url')
 def get_image_url(filename):
-    """Get full URL for image"""
-    if filename:
-        return url_for('static', filename=f'uploads/{filename}')
-    return url_for('static', filename='images/placeholder.jpg')
-
-# ==================== ERROR HANDLERS ====================
-
-@app.errorhandler(404)
-def not_found(e):
-    return render_template('404.html'), 404
-
-@app.errorhandler(500)
-def server_error(e):
-    return render_template('500.html'), 500
-
-# ==================== INITIALIZE DATABASE ====================
+    return url_for('static', filename=f'uploads/{filename}') if filename else url_for('static', filename='images/placeholder.jpg')
 
 def init_db():
-    """Initialize database with test user"""
     with app.app_context():
-        # Create tables
         db.create_all()
-        
-        # Check if test user exists
-        test_user = User.query.filter_by(email='test@gmail.com').first()
-        if not test_user:
-            # Create test user account
-            test_user = User(
-                name='Test User',
-                email='test@gmail.com',
-                password=generate_password_hash('password123', method='pbkdf2:sha256')
-            )
-            db.session.add(test_user)
+        if not User.query.filter_by(email='test@gmail.com').first():
+            db.session.add(User(
+                name='Test User', email='test@gmail.com', mobile='9876543210',
+                password=generate_password_hash('password123'),
+                email_verified=True, mobile_verified=True
+            ))
             db.session.commit()
-            print('Test user account created: test@gmail.com / password123')
-        
-        print('Database initialized successfully!')
-        print('Any authenticated user can add/edit/delete properties.')
-        print('Dashboard will start empty - users can add properties.')
-
-# ==================== RUN APPLICATION ====================
+            print('\n' + '='*60)
+            print('✅ DATABASE INITIALIZED')
+            print('📧 Test Account: test@gmail.com')
+            print('🔑 Password: password123')
+            print('📱 Mobile: 9876543210')
+            print('='*60 + '\n')
 
 if __name__ == '__main__':
-    # Initialize database
     init_db()
-    
-    # Run Flask app
     app.run(debug=True)
