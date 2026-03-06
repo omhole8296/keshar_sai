@@ -1,6 +1,4 @@
 instance/
 *.db
 __pycache__/
-instance/ 
-*.db 
-__pycache__/ 
+.env

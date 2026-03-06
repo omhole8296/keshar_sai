@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Account - Keshar Sai Developers</title>
+    <title>Verify Email - Keshar Sai Developers</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
@@ -24,24 +24,24 @@
         .auth-container p { text-align: center; color: #666; font-size: 14px; margin-bottom: 30px; }
         .info-box {
             background: #e7f3ff; padding: 15px; border-radius: 12px; margin-bottom: 25px;
-            border-left: 4px solid #0066cc;
+            border-left: 4px solid #0066cc; text-align: center;
         }
-        .info-box p { margin: 5px 0; font-size: 13px; color: #004085; text-align: left; }
-        .info-box strong { color: #003366; }
-        .verify-section { margin-bottom: 25px; padding: 20px; background: #f8f9fa; border-radius: 12px; }
-        .verify-section h3 { font-size: 16px; color: #333; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .verify-section h3 i { color: #c0392b; font-size: 18px; }
+        .info-box p { margin: 5px 0; font-size: 14px; color: #004085; }
+        .info-box strong { color: #003366; font-size: 16px; }
+        .verify-section { margin-bottom: 25px; padding: 25px; background: #f8f9fa; border-radius: 12px; text-align: center; }
+        .verify-section h3 { font-size: 18px; color: #333; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .verify-section h3 i { color: #c0392b; font-size: 22px; }
         .input-group { position: relative; margin-bottom: 15px; }
         .input-group input {
-            width: 100%; padding: 14px 15px; border-radius: 14px; border: 1px solid #ccc;
-            font-size: 16px; font-weight: 500; letter-spacing: 2px; text-align: center; transition: .3s;
+            width: 100%; padding: 16px 15px; border-radius: 14px; border: 2px solid #ddd;
+            font-size: 24px; font-weight: 600; letter-spacing: 5px; text-align: center; transition: .3s;
         }
         .input-group input:focus { outline: none; border-color: #c0392b; box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
-        .verify-info { font-size: 12px; color: #666; margin-bottom: 10px; }
+        .verify-info { font-size: 13px; color: #666; margin-top: 12px; }
         .auth-container button {
-            width: 100%; padding: 14px; border: none; border-radius: 30px;
+            width: 100%; padding: 16px; border: none; border-radius: 30px;
             background: linear-gradient(135deg,#c0392b,#a93226); color: white;
-            font-size: 16px; font-weight: 600; cursor: pointer; transition: .3s; letter-spacing: .5px; margin-top: 20px;
+            font-size: 17px; font-weight: 600; cursor: pointer; transition: .3s; letter-spacing: .5px; margin-top: 20px;
         }
         .auth-container button:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(192,57,43,0.4); }
         .alert { padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
@@ -55,13 +55,13 @@
 </head>
 <body>
     <div class="auth-container">
-        <h2>Verify Your Details</h2>
-        <p>Enter the verification codes to complete registration</p>
+        <h2>Verify Your Email</h2>
+        <p>Enter the verification code we sent to your email</p>
 
         <div class="info-box">
-            <p><i class="fas fa-info-circle"></i> <strong>Verification codes sent to:</strong></p>
-            <p>📧 Email: {{ email }}</p>
-            <p>📱 Mobile: {{ mobile }}</p>
+            <p><i class="fas fa-envelope"></i></p>
+            <p><strong>Code sent to:</strong></p>
+            <p>{{ email }}</p>
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -73,22 +73,14 @@
         {% endwith %}
 
         <form method="POST">
-            <!-- Email Verification -->
             <div class="verify-section">
-                <h3><i class="fas fa-envelope"></i> Email Verification</h3>
+                <h3><i class="fas fa-shield-check"></i> Email Verification</h3>
                 <div class="input-group">
                     <input type="text" name="email_code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required autofocus>
                 </div>
-                <p class="verify-info"><i class="fas fa-paper-plane"></i> Check your email inbox</p>
-            </div>
-
-            <!-- Mobile Verification -->
-            <div class="verify-section">
-                <h3><i class="fas fa-mobile-alt"></i> Mobile Verification</h3>
-                <div class="input-group">
-                    <input type="text" name="mobile_code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" required>
-                </div>
-                <p class="verify-info"><i class="fas fa-sms"></i> Check your text messages</p>
+                <p class="verify-info">
+                    <i class="fas fa-info-circle"></i> Check your email inbox for the 6-digit code
+                </p>
             </div>
 
             <button type="submit">
@@ -103,10 +95,8 @@
 
     <script>
         // Allow only numbers
-        document.querySelectorAll('input[type="text"]').forEach(input => {
-            input.addEventListener('input', function(e) {
-                this.value = this.value.replace(/[^0-9]/g, '');
-            });
+        document.querySelector('input[name="email_code"]').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
         });
     </script>
 </body>

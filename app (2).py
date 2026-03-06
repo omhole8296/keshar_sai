@@ -93,8 +93,8 @@ def send_email(to_email, subject, message):
     # ===== EMAIL CONFIGURATION =====
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SMTP_EMAIL = os.getenv("EMAIL_USER")
-    SMTP_PASSWORD = os.getenv("SECRET_KEY")
+    SMTP_EMAIL = "keshar7enterprises@gmail.com"
+    SMTP_PASSWORD = "your-app-password-here"
     # ===============================
     
     try:
