@@ -28,7 +28,9 @@
                 <li><a href="{{ url_for('about') }}">About Us</a></li>
                 <li><a href="{{ url_for('contact') }}">Contact</a></li>
                 <li><a href="{{ url_for('liked_properties') }}">Liked Properties</a></li>
+                {% if is_owner %}
                 <li><a href="{{ url_for('users_list') }}">Users</a></li>
+                {% endif %}
             </ul>
 
             <!-- Search Bar -->
@@ -64,12 +66,14 @@
     <div class="container">
         
         <!-- Add Property Button (Owner Only) -->
+        {% if is_owner %}
         <div class="owner-only" style="margin-bottom: 2rem; text-align: right;">
             <button class="add-property-btn" onclick="window.location.href='{{ url_for('add_property') }}'">
                 <i class="fas fa-plus"></i>
                 Add New Property
             </button>
         </div>
+        {% endif %}
         
         <!-- Category Tabs (No Industrial) -->
         <div class="category-tabs">

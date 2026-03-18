@@ -596,6 +596,7 @@
 
         <div class="header-actions">
             <!-- Owner Actions - Only visible to owner -->
+            {% if is_owner %}
             <div class="owner-actions">
                 <button class="owner-btn edit" onclick="editProperty()" title="Edit Property">
                     <i class="fas fa-edit"></i>
@@ -604,6 +605,7 @@
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
+            {% endif %}
             
             <button class="book-btn" onclick="bookProperty()">
                 <i class="fas fa-check-circle"></i>

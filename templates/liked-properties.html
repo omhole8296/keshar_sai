@@ -26,7 +26,9 @@
                 <li><a href="{{ url_for('about') }}">About Us</a></li>
                 <li><a href="{{ url_for('contact') }}">Contact</a></li>
                 <li><a href="{{ url_for('liked_properties') }}" class="active">Liked Properties</a></li>
+                {% if is_owner %}
                 <li><a href="{{ url_for('users_list') }}">Users</a></li>
+                {% endif %}
             </ul>
 
             <div class="profile-menu">
@@ -34,18 +36,9 @@
                     <i class="fas fa-user"></i>
                 </div>
                 <div class="dropdown" id="dropdown">
-                    <a href="#profile">
-                        <i class="fas fa-user"></i>
-                        Profile
-                    </a>
-                    <a href="#settings">
-                        <i class="fas fa-cog"></i>
-                        Settings
-                    </a>
-                    <a href="{{ url_for('logout') }}">
-                        <i class="fas fa-sign-out-alt"></i>
-                        Logout
-                    </a>
+                    <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profile</a>
+                    <a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i> Settings</a>
+                    <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </div>
             </div>
         </div>

@@ -18,6 +18,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
+# Admin Email from Environment Variable
+ADMIN_EMAIL = os.getenv('EMAIL')
+
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -71,6 +74,22 @@ class LikedProperty(db.Model):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+def is_admin(user=None):
+    """Check if user is admin"""
+    if user is None:
+        user = current_user
+    return user.is_authenticated and user.email == ADMIN_EMAIL
+
+@app.context_processor
+def inject_user_data():
+    """Make user data and admin status available in all templates"""
+    if current_user.is_authenticated:
+        return {
+            'is_admin': is_admin(),
+            'current_user': current_user
+        }
+    return {'is_admin': False}
+
 # ==================== HELPER FUNCTIONS ====================
 
 def generate_code():
@@ -93,7 +112,7 @@ def send_email(to_email, subject, message):
     # ===== EMAIL CONFIGURATION =====
     SMTP_SERVER = "smtp.gmail.com"
     SMTP_PORT = 587
-    SMTP_EMAIL = os.getenv("EMAIL_USER")
+    SMTP_EMAIL = os.getenv("EMAIL")
     SMTP_PASSWORD = os.getenv("SECRET_KEY")
     # ===============================
     
@@ -244,17 +263,21 @@ def logout():
 def dashboard():
     properties = Property.query.filter(Property.category != 'industrial').order_by(Property.created_at.desc()).all()
     liked_ids = [l.property_id for l in LikedProperty.query.filter_by(user_id=current_user.id).all()]
-    return render_template('dashboard.html', properties=properties, is_owner=True, liked_property_ids=liked_ids)
+    return render_template('dashboard.html', properties=properties, is_owner=is_admin(), liked_property_ids=liked_ids)
 
 @app.route('/property/<int:id>')
 @login_required
 def property_detail(id):
     prop = Property.query.get_or_404(id)
-    return render_template('property-view.html', property=prop, is_owner=True)
+    return render_template('property-view.html', property=prop, is_owner=is_admin())
 
 @app.route('/add-property', methods=['GET','POST'])
 @login_required
 def add_property():
+    if not is_admin():
+        flash('Access denied. Admin only.', 'error')
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
         try:
             p = Property(
@@ -290,6 +313,10 @@ def add_property():
 @app.route('/edit-property/<int:id>', methods=['GET','POST'])
 @login_required
 def edit_property(id):
+    if not is_admin():
+        flash('Access denied. Admin only.', 'error')
+        return redirect(url_for('dashboard'))
+    
     p = Property.query.get_or_404(id)
     
     if request.method == 'POST':
@@ -332,6 +359,9 @@ def edit_property(id):
 @app.route('/delete-property/<int:id>', methods=['DELETE'])
 @login_required
 def delete_property(id):
+    if not is_admin():
+        return jsonify({'success': False, 'message': 'Access denied'}), 403
+    
     try:
         p = Property.query.get_or_404(id)
         for i in range(1, 5):
@@ -349,12 +379,12 @@ def delete_property(id):
 @app.route('/about')
 @login_required
 def about():
-    return render_template('about.html', year=datetime.now().year)
+    return render_template('about.html', year=datetime.now().year , is_owner=is_admin())
 
 @app.route('/contact')
 @login_required
 def contact():
-    return render_template('contact.html', year=datetime.now().year)
+    return render_template('contact.html', year=datetime.now().year , is_owner=is_admin())
 
 @app.route('/contact-submit', methods=['POST'])
 @login_required
@@ -367,7 +397,7 @@ def contact_submit():
         
         # Send to admin
         send_email(
-            to_email=os.getenv("EMAIL_USER"),
+            to_email="keshar7enterprises@gmail.com",
             subject=f"New Contact: {name}",
             message=f"From: {name}\nEmail: {email}\nPhone: {phone}\n\nMessage:\n{message}"
         )
@@ -391,11 +421,14 @@ def liked_properties():
     liked = LikedProperty.query.filter_by(user_id=current_user.id).all()
     props = [Property.query.get(l.property_id) for l in liked]
     props = [p for p in props if p]
-    return render_template('liked-properties.html', properties=props, liked_property_ids=[p.id for p in props])
+    return render_template('liked-properties.html', properties=props, liked_property_ids=[p.id for p in props] , is_owner=is_admin())
 
 @app.route('/users')
 @login_required
 def users_list():
+    if not is_admin():
+        flash('Access denied. Admin only.', 'error')
+        return redirect(url_for('dashboard'))
     users = User.query.order_by(User.created_at.desc()).all()
     return render_template('users.html', users=users)
 
@@ -450,12 +483,12 @@ def profile():
             db.session.rollback()
             flash('Error updating profile', 'error')
     
-    return render_template('profile.html', user=current_user)
+    return render_template('profile.html', user=current_user , is_owner=is_admin())
 
 @app.route('/settings')
 @login_required
 def settings():
-    return render_template('settings.html', user=current_user)
+    return render_template('settings.html', user=current_user , is_owner=is_admin())
 
 @app.template_filter('get_image_url')
 def get_image_url(filename):

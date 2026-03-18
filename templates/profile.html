@@ -201,7 +201,9 @@
                 <li><a href="{{ url_for('about') }}">About Us</a></li>
                 <li><a href="{{ url_for('contact') }}">Contact</a></li>
                 <li><a href="{{ url_for('liked_properties') }}">Liked Properties</a></li>
+                {% if is_owner %}
                 <li><a href="{{ url_for('users_list') }}">Users</a></li>
+                {% endif %}
             </ul>
 
             <div class="profile-menu">
