@@ -276,11 +276,7 @@
                         <div class="form-group">
                             <label>
                                 Mobile Number
-                                {% if user.mobile_verified %}
-                                    <span class="info-badge badge-verified">✓ Verified</span>
-                                {% else %}
-                                    <span class="info-badge badge-pending">Pending</span>
-                                {% endif %}
+                                
                             </label>
                             <input type="tel" name="mobile" value="{{ user.mobile }}" required>
                         </div>
@@ -297,9 +293,7 @@
                                 {% endif %}
                             </label>
                             <input type="email" value="{{ user.email }}" disabled>
-                            <small style="color: var(--medium-gray); display: block; margin-top: 0.5rem;">
-                                To change email, go to Settings
-                            </small>
+                            
                         </div>
                         
                         <div class="form-group">

@@ -85,11 +85,6 @@
                     <p class="info-label">Mobile Number</p>
                     <p class="info-value">
                         {{ user.mobile }}
-                        {% if user.mobile_verified %}
-                            <span class="status-badge badge-verified">✓ Verified</span>
-                        {% else %}
-                            <span class="status-badge badge-pending">Pending</span>
-                        {% endif %}
                     </p>
                 </div>
                 <div>
@@ -98,16 +93,7 @@
                 </div>
             </div>
 
-            {% if not user.email_verified or not user.mobile_verified %}
-            <div style="margin-top: 2rem; padding: 1rem; background: #fff3cd; border-radius: 8px; text-align: center;">
-                <i class="fas fa-exclamation-triangle" style="color: #856404;"></i>
-                <span style="color: #856404; font-weight: 600;">Your account is not fully verified.</span>
-                <a href="{{ url_for('verify') }}" style="display: inline-block; margin-left: 1rem; color: var(--primary-red); font-weight: 600; text-decoration: none;">
-                    Verify Now →
-                </a>
-            </div>
-            {% endif %}
-        </div>
+
 
         <div class="settings-card">
             <h3 style="font-size: 1.5rem; color: var(--dark-text); margin-bottom: 2rem; border-bottom: 2px solid var(--light-gray); padding-bottom: 0.5rem;">

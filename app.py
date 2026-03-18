@@ -367,7 +367,7 @@ def contact_submit():
         
         # Send to admin
         send_email(
-            to_email="keshar7enterprises@gmail.com",
+            to_email=os.getenv("EMAIL_USER"),
             subject=f"New Contact: {name}",
             message=f"From: {name}\nEmail: {email}\nPhone: {phone}\n\nMessage:\n{message}"
         )
